@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/Neel-stack-deb/standalone-CLI-Traceroute-tool/internal/trace"
@@ -42,10 +41,11 @@ func formatRow(report trace.HopReport) string {
 	}
 
 	asnISP := "-"
-	if report.ASN != "-" || report.Organization != "-" {
-		asnISP = strings.TrimSpace(fmt.Sprintf("AS%s %s", report.ASN, report.Organization))
-		if asnISP == "AS- -" {
-			asnISP = "-"
+	if report.ASN != "-" && report.ASN != "" {
+		if report.Organization != "-" && report.Organization != "" {
+			asnISP = fmt.Sprintf("AS%s %s", report.ASN, report.Organization)
+		} else {
+			asnISP = fmt.Sprintf("AS%s", report.ASN)
 		}
 	}
 

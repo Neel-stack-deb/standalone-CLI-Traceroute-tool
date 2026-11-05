@@ -160,7 +160,7 @@ func waitForReply(
 		if err := socket.SetReadTimeout(remaining); err != nil {
 			return icmpproto.ProbeMatch{}, 0, err
 		}
-		byteCount, _, err := socket.RecvFrom(receiveBuffer)
+		byteCount, sourceAddress, err := socket.RecvFrom(receiveBuffer)
 		if err != nil {
 			if errno, ok := err.(syscall.Errno); ok && (errno == syscall.EAGAIN || errno == syscall.EWOULDBLOCK) {
 				return icmpproto.ProbeMatch{}, 0, fmt.Errorf("probe timeout")
@@ -171,8 +171,32 @@ func waitForReply(
 		if !matched {
 			continue
 		}
+		if sourceAddress != nil && sourceAddress.To4() != nil {
+			match.Responder = sourceAddress.To4()
+		}
+		if !isPlausibleHopAddress(match.Responder) {
+			continue
+		}
 		return match, time.Since(sendTime), nil
 	}
+}
+
+func isPlausibleHopAddress(ipAddress net.IP) bool {
+	if ipAddress == nil {
+		return false
+	}
+	ipv4 := ipAddress.To4()
+	if ipv4 == nil {
+		return false
+	}
+	if ipv4.IsMulticast() || ipv4.IsLoopback() || ipv4.IsUnspecified() {
+		return false
+	}
+	firstOctet := ipv4[0]
+	if firstOctet >= 240 {
+		return false
+	}
+	return true
 }
 
 func buildHopReport(parent context.Context, hopNumber int, hopAddress net.IP, samples []time.Duration, reached bool) HopReport {
