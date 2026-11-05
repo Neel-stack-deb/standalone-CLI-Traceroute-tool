@@ -1,7 +1,9 @@
-.PHONY: build test install run
+.PHONY: build test install run run-cap
+
+BINARY := bin/traceroute-tool
 
 build:
-	go build -o bin/traceroute-tool ./cmd/traceroute-tool
+	go build -o $(BINARY) ./cmd/traceroute-tool
 
 test:
 	go test ./...
@@ -10,4 +12,9 @@ install:
 	bash .cursor/install.sh
 
 run: build
-	./bin/traceroute-tool -m 5 8.8.8.8
+	sudo $(BINARY) -m 10 -w 3 -q 3 8.8.8.8
+
+run-cap: build
+	@echo "Granting cap_net_raw to $(BINARY) (requires sudo once)"
+	sudo setcap cap_net_raw+ep $(BINARY)
+	$(BINARY) -m 10 -w 3 -q 3 8.8.8.8
