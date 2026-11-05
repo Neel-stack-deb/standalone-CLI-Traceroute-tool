@@ -8,8 +8,8 @@ import (
 func TestOnesComplementChecksumRFC1071Example(t *testing.T) {
 	data := []byte("123456789")
 	sum := OnesComplementChecksum(data)
-	if sum != 0xdd2f {
-		t.Fatalf("unexpected checksum: got %#x want %#x", sum, 0xdd2f)
+	if sum != 0xf62a {
+		t.Fatalf("unexpected checksum: got %#x want %#x", sum, 0xf62a)
 	}
 }
 
